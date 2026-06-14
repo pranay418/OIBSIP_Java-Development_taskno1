@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Online Reservation System</title>
+  <!-- SEO Meta Tags -->
+  <meta name="description" content="A premium, secure, and modern Online Railway Reservation System for booking and cancelling train tickets.">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <div class="app-container">
+
+    <!-- ========================================== -->
+    <!-- AUTHENTICATION SECTION                     -->
+    <!-- ========================================== -->
+    <div id="authScreen" class="auth-wrapper">
+      <div class="glass-card auth-card">
+        <div class="auth-header">
+          <h1 class="brand-title">RailPass</h1>
+          <p class="brand-subtitle">Online Reservation System</p>
+        </div>
+
+        <!-- Role Toggle Tabs -->
+        <div class="role-tabs">
+          <button id="tabPassenger" class="role-tab active" onclick="switchRole('passenger')">Passenger</button>
+          <button id="tabAdmin" class="role-tab" onclick="switchRole('admin')">Official Login</button>
+        </div>
+
+        <form id="loginForm" onsubmit="handleLogin(event)">
+          <!-- Hidden Role Input -->
+          <input type="hidden" id="loginRole" value="passenger">
+
+          <!-- User ID Input -->
+          <div class="form-group">
+            <label for="username" class="form-label">Login ID</label>
+            <div class="input-wrapper">
+              <svg class="input-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+              <input type="text" id="username" class="form-input" placeholder="e.g. passenger or admin" required>
+            </div>
+            <div id="usernameHelp" class="error-msg hidden"></div>
+          </div>
+
+          <!-- Password Input -->
+          <div class="form-group">
+            <label for="password" class="form-label">Password</label>
+            <div class="input-wrapper">
+              <svg class="input-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+              <input type="password" id="password" class="form-input" placeholder="••••••••" required>
+            </div>
+            <div id="passwordHelp" class="error-msg hidden"></div>
+          </div>
+
+          <!-- Helper Credentials Hints -->
+          <div style="margin-top: -0.5rem; margin-bottom: 1.5rem; text-align: left;">
+            <p style="font-size: 0.75rem; color: var(--text-dim);">
+              <span style="font-weight: 600; color: var(--primary-gold);">Demo credentials:</span><br>
+              Passenger: <code style="color: var(--text-main)">passenger</code> / <code style="color: var(--text-main)">pass123</code><br>
+              Official: <code style="color: var(--text-main)">admin</code> / <code style="color: var(--text-main)">admin123</code>
+            </p>
+          </div>
+
+          <button type="submit" id="btnLogin" class="btn-primary">
+            Sign In
+            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+            </svg>
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- DASHBOARD CONTAINER                        -->
+    <!-- ========================================== -->
+    <div id="dashboardScreen" class="hidden" style="display: flex; flex-direction: column; flex: 1;">
+      
+      <!-- Top Header -->
+      <header class="main-header">
+        <div class="brand-section">
+          <!-- Logo SVG -->
+          <svg class="brand-logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <rect x="3" y="3" width="18" height="14" rx="2" />
+            <path d="M7 21h10" />
+            <path d="M9 17l-2 4" />
+            <path d="M15 17l2 4" />
+            <path d="M7 7h10" />
+            <path d="M7 11h4" />
+          </svg>
+          <span class="header-brand-title">RAILPASS</span>
+        </div>
+
+        <div class="profile-section">
+          <div class="profile-info">
+            <div id="headerUserName" class="profile-name">Passenger User</div>
+            <div id="headerUserRole" class="profile-role">Passenger</div>
+          </div>
+          <button onclick="handleLogout()" class="btn-secondary">
+            Logout
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <!-- Main Layout -->
+      <div class="dashboard-wrapper">
+        
+        <!-- Sidebar Navigation -->
+        <aside class="glass-card sidebar">
+          <p class="sidebar-title">Menu Navigation</p>
+          
+          <!-- Passenger Nav Items -->
+          <div id="passengerNav" class="nav-group">
+            <button id="btnNavBook" class="sidebar-nav-btn active" onclick="switchSection('book')">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              Book Ticket
+            </button>
+            <button id="btnNavCancel" class="sidebar-nav-btn" onclick="switchSection('cancel')">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Cancel Ticket
+            </button>
+            <button id="btnNavMyBookings" class="sidebar-nav-btn" onclick="switchSection('mybookings')">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+              </svg>
+              My Bookings
+            </button>
+          </div>
+
+          <!-- Admin Nav Items -->
+          <div id="adminNav" class="nav-group hidden">
+            <button id="btnNavCentralDb" class="sidebar-nav-btn active" onclick="switchSection('centraldb')">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 7v10c0 2.21 3.58 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.58 4 8 4s8-1.79 8-4M4 7c0-2.21 3.58-4 8-4s8 1.79 8 4m0 5c0 2.21-3.58 4-8 4s-8-1.79-8-4" />
+              </svg>
+              Central Database
+            </button>
+          </div>
+        </aside>
+
+        <!-- Main Content Pane -->
+        <main class="content-area">
+
+          <!-- ========================================== -->
+          <!-- BOOK TICKET SECTION                        -->
+          <!-- ========================================== -->
+          <section id="sectionBook" class="glass-card section-card">
+            <div class="section-header">
+              <h2 class="section-title">Ticket Reservation Form</h2>
+              <p class="section-subtitle">Secure your train seat by providing journey details</p>
+            </div>
+
+            <form id="reservationForm" onsubmit="handleReservationSubmit(event)">
+              <div class="form-grid">
+                
+                <!-- Passenger Name -->
+                <div class="form-group">
+                  <label for="passengerName" class="form-label">Passenger Name</label>
+                  <div class="input-wrapper">
+                    <svg class="input-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    <input type="text" id="passengerName" class="form-input" placeholder="Enter Full Name" required>
+                  </div>
+                </div>
+
+                <!-- Age & Gender Grid -->
+                <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 0;">
+                  <div>
+                    <label for="passengerAge" class="form-label">Age</label>
+                    <input type="number" id="passengerAge" class="form-input" style="padding-left: 1rem;" placeholder="Age" min="1" max="120" required>
+                  </div>
+                  <div>
+                    <label for="passengerGender" class="form-label">Gender</label>
+                    <select id="passengerGender" class="form-input" style="padding-left: 1rem;" required>
+                      <option value="" disabled selected>Select</option>
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Train Number -->
+                <div class="form-group">
+                  <label for="trainNumber" class="form-label">Train Number</label>
+                  <div class="input-wrapper">
+                    <svg class="input-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                    <select id="trainNumber" class="form-input" onchange="autoFillTrainName()" required>
+                      <option value="" disabled selected>Choose Train Number</option>
+                      <option value="12001">12001 (Shatabdi Express)</option>
+                      <option value="12951">12951 (Rajdhani Express)</option>
+                      <option value="12260">12260 (Duronto Express)</option>
+                      <option value="12626">12626 (Kerala Express)</option>
+                      <option value="12615">12615 (Grand Trunk Express)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Train Name (Auto Filled) -->
+                <div class="form-group">
+                  <label for="trainName" class="form-label">Train Name</label>
+                  <div class="input-wrapper">
+                    <svg class="input-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                    </svg>
+                    <input type="text" id="trainName" class="form-input" placeholder="Autofilled based on Train No." readonly>
+                  </div>
+                </div>
+
+                <!-- From Station -->
+                <div class="form-group">
+                  <label for="fromStation" class="form-label">From Station</label>
+                  <div class="input-wrapper">
+                    <svg class="input-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    <select id="fromStation" class="form-input" required>
+                      <option value="" disabled selected>Select Origin</option>
+                      <option value="New Delhi (NDLS)">New Delhi (NDLS)</option>
+                      <option value="Mumbai Central (MMCT)">Mumbai Central (MMCT)</option>
+                      <option value="Howrah Junction (HWH)">Howrah Junction (HWH)</option>
+                      <option value="Chennai Central (MAS)">Chennai Central (MAS)</option>
+                      <option value="Bengaluru City (SBC)">Bengaluru City (SBC)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Destination Station -->
+                <div class="form-group">
+                  <label for="toStation" class="form-label">Destination Station</label>
+                  <div class="input-wrapper">
+                    <svg class="input-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    <select id="toStation" class="form-input" required>
+                      <option value="" disabled selected>Select Destination</option>
+                      <option value="New Delhi (NDLS)">New Delhi (NDLS)</option>
+                      <option value="Mumbai Central (MMCT)">Mumbai Central (MMCT)</option>
+                      <option value="Howrah Junction (HWH)">Howrah Junction (HWH)</option>
+                      <option value="Chennai Central (MAS)">Chennai Central (MAS)</option>
+                      <option value="Bengaluru City (SBC)">Bengaluru City (SBC)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Class Type -->
+                <div class="form-group">
+                  <label for="classType" class="form-label">Class Type</label>
+                  <div class="input-wrapper">
+                    <svg class="input-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                    </svg>
+                    <select id="classType" class="form-input" required>
+                      <option value="" disabled selected>Select Seat Class</option>
+                      <option value="First Class AC (1A)">First Class AC (1A)</option>
+                      <option value="Second Class AC (2A)">Second Class AC (2A)</option>
+                      <option value="Sleeper Class (SL)">Sleeper Class (SL)</option>
+                      <option value="General Booking (GEN)">General Booking (GEN)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Date of Journey -->
+                <div class="form-group">
+                  <label for="journeyDate" class="form-label">Date of Journey</label>
+                  <div class="input-wrapper">
+                    <svg class="input-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2-2H5v14a2 2 0 002 2z" />
+                    </svg>
+                    <input type="date" id="journeyDate" class="form-input" required>
+                  </div>
+                </div>
+
+                <!-- Error Messages Box -->
+                <div id="bookingErrorBox" class="form-grid-full error-msg hidden" style="margin-bottom: 1rem;"></div>
+
+                <!-- Insert / Book Button -->
+                <div class="form-grid-full">
+                  <button type="submit" class="btn-primary">
+                    <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                    </svg>
+                    Insert / Book Ticket
+                  </button>
+                </div>
+
+              </div>
+            </form>
+
+            <!-- Ticket Receipt Display Container (Hidden Initially) -->
+            <div id="ticketReceiptContainer" class="hidden">
+              <div class="ticket-receipt-outer">
+                <div class="ticket-receipt">
+                  <div class="ticket-header">
+                    <div>
+                      <h3 style="color: var(--primary-gold); font-size: 1.25rem;">BOARDING PASS</h3>
+                      <p style="font-size: 0.75rem; text-transform: uppercase;">Indian Railways Express</p>
+                    </div>
+                    <div class="ticket-pnr-box">
+                      <span class="ticket-pnr-lbl">PNR Number</span>
+                      <div id="recPnr" class="ticket-pnr-val">0000000000</div>
+                    </div>
+                  </div>
+
+                  <div class="ticket-grid">
+                    <div>
+                      <div class="ticket-field-lbl">Passenger Name</div>
+                      <div id="recName" class="ticket-field-val">-</div>
+                    </div>
+                    <div>
+                      <div class="ticket-field-lbl">Age / Gender</div>
+                      <div id="recAgeGen" class="ticket-field-val">-</div>
+                    </div>
+                    <div>
+                      <div class="ticket-field-lbl">Train</div>
+                      <div id="recTrain" class="ticket-field-val">-</div>
+                    </div>
+                    <div>
+                      <div class="ticket-field-lbl">Seat Class</div>
+                      <div id="recClass" class="ticket-field-val">-</div>
+                    </div>
+                    <div>
+                      <div class="ticket-field-lbl">From Station</div>
+                      <div id="recFrom" class="ticket-field-val">-</div>
+                    </div>
+                    <div>
+                      <div class="ticket-field-lbl">Destination</div>
+                      <div id="recTo" class="ticket-field-val">-</div>
+                    </div>
+                    <div>
+                      <div class="ticket-field-lbl">Date of Journey</div>
+                      <div id="recDate" class="ticket-field-val">-</div>
+                    </div>
+                    <div>
+                      <div class="ticket-field-lbl">Transaction Status</div>
+                      <div class="ticket-field-val" style="color: var(--color-success); display: flex; align-items: center; gap: 0.25rem;">
+                        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        SUCCESS
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="ticket-footer">
+                    <div>
+                      <p style="font-size: 0.75rem; color: var(--text-dim);">Please keep a copy of this ticket during travel.</p>
+                    </div>
+                    <button class="btn-secondary" onclick="resetBookingForm()" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">
+                      Book Another
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </section>
+
+          <!-- ========================================== -->
+          <!-- CANCEL TICKET SECTION                      -->
+          <!-- ========================================== -->
+          <section id="sectionCancel" class="glass-card section-card hidden">
+            <div class="section-header">
+              <h2 class="section-title">Cancellation Request Form</h2>
+              <p class="section-subtitle">Cancel your booking and release seat availability</p>
+            </div>
+
+            <!-- Search PNR Form -->
+            <form id="cancelSearchForm" onsubmit="handleCancelSearch(event)">
+              <div class="search-bar-wrapper">
+                <div class="search-input-group">
+                  <label for="cancelPnrInput" class="form-label">PNR Number</label>
+                  <div class="input-wrapper">
+                    <svg class="input-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    <input type="text" id="cancelPnrInput" class="form-input" placeholder="Enter 10-Digit PNR" required pattern="\d{10}">
+                  </div>
+                </div>
+                <div style="display: flex; align-items: flex-end;">
+                  <button type="submit" class="btn-primary" style="margin-top: 0; padding-top: 0.8rem; padding-bottom: 0.8rem;">
+                    Retrieve Ticket
+                  </button>
+                </div>
+              </div>
+              <div id="cancelSearchError" class="error-msg hidden" style="margin-top: -0.5rem; margin-bottom: 1rem;"></div>
+            </form>
+
+            <!-- Cancellation Info & Confirm Form -->
+            <div id="cancelInfoPanel" class="cancel-lookup-results hidden">
+              <div class="info-alert">
+                <h4 style="color: var(--color-error); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                  <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                  Warning: Cancellation Action
+                </h4>
+                <p>Cancelling this ticket will immediately release the seat. This action is irreversible.</p>
+              </div>
+
+              <!-- Ticket Info Display -->
+              <div class="ticket-receipt-outer" style="margin-top: 0; margin-bottom: 2rem; box-shadow: none;">
+                <div class="ticket-receipt" style="background: var(--bg-card);">
+                  <div class="ticket-header" style="border-bottom-style: solid;">
+                    <div>
+                      <h3 style="color: var(--text-muted); font-size: 1.1rem;">RESERVATION SUMMARY</h3>
+                      <p id="cancelShowStatus" class="badge badge-active" style="margin-top: 0.25rem;">Active</p>
+                    </div>
+                    <div class="ticket-pnr-box">
+                      <span class="ticket-pnr-lbl">PNR</span>
+                      <div id="cancelShowPnr" class="ticket-pnr-val" style="font-size: 1.25rem;">-</div>
+                    </div>
+                  </div>
+
+                  <div class="ticket-grid" style="margin-bottom: 0;">
+                    <div>
+                      <div class="ticket-field-lbl">Passenger Name</div>
+                      <div id="cancelShowName" class="ticket-field-val">-</div>
+                    </div>
+                    <div>
+                      <div class="ticket-field-lbl">Train Info</div>
+                      <div id="cancelShowTrain" class="ticket-field-val">-</div>
+                    </div>
+                    <div>
+                      <div class="ticket-field-lbl">From / To</div>
+                      <div id="cancelShowRoute" class="ticket-field-val">-</div>
+                    </div>
+                    <div>
+                      <div class="ticket-field-lbl">Journey Date</div>
+                      <div id="cancelShowDate" class="ticket-field-val">-</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Cancellation Actions -->
+              <div class="cancel-actions">
+                <button class="btn-secondary" onclick="resetCancelForm()">Cancel Operations</button>
+                <button id="btnConfirmCancel" class="btn-primary" style="background: linear-gradient(135deg, var(--color-error) 0%, hsl(0, 80%, 45%) 100%); color: var(--text-main); box-shadow: 0 4px 15px rgba(239, 68, 68, 0.15);" onclick="confirmCancellation()">
+                  OK (Confirm Cancellation)
+                </button>
+              </div>
+            </div>
+
+            <!-- Success Cancel Message -->
+            <div id="cancelSuccessPanel" class="hidden" style="text-align: center; padding: 3rem 1.5rem;">
+              <div style="width: 72px; height: 72px; background: rgba(16, 185, 129, 0.12); border-radius: 50px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; color: var(--color-success);">
+                <svg width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <h3 style="font-size: 1.5rem; margin-bottom: 0.5rem; font-family: var(--font-heading);">Ticket Successfully Cancelled</h3>
+              <p style="color: var(--text-muted); max-width: 400px; margin: 0 auto 1.5rem;">The reservation records have been updated, and the seat is now available for booking.</p>
+              <button class="btn-secondary" onclick="resetCancelForm()" style="margin: 0 auto;">Back to Form</button>
+            </div>
+
+          </section>
+
+          <!-- ========================================== -->
+          <!-- MY BOOKINGS SECTION                        -->
+          <!-- ========================================== -->
+          <section id="sectionMyBookings" class="glass-card section-card hidden">
+            <div class="section-header">
+              <h2 class="section-title">My Bookings & History</h2>
+              <p class="section-subtitle">Manage and view your currently scheduled journeys</p>
+            </div>
+
+            <!-- Bookings List Table -->
+            <div id="myBookingsContainer" class="table-container">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>PNR</th>
+                    <th>Passenger</th>
+                    <th>Train</th>
+                    <th>Date</th>
+                    <th>Route</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="myBookingsTableBody">
+                  <!-- JS generated rows -->
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Empty Bookings State -->
+            <div id="myBookingsEmpty" class="empty-state hidden">
+              <svg class="empty-state-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.663 17h4.673M12 3v1m6.364 .364l-.707 .707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+              </svg>
+              <h3>No Reservations Found</h3>
+              <p>You haven't made any train reservations yet. Use the Booking tab to schedule your travel.</p>
+            </div>
+          </section>
+
+          <!-- ========================================== -->
+          <!-- ADMIN CENTRAL DATABASE SECTION             -->
+          <!-- ========================================== -->
+          <section id="sectionCentralDb" class="glass-card section-card hidden">
+            <div class="section-header">
+              <h2 class="section-title">Central Database Viewer</h2>
+              <p class="section-subtitle">System-wide monitoring dashboard for authorized railway officials</p>
+            </div>
+
+            <!-- Quick Metrics Overview -->
+            <div class="stats-grid">
+              
+              <!-- Total Bookings -->
+              <div class="glass-card stat-card">
+                <div class="stat-icon-box">
+                  <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                  </svg>
+                </div>
+                <div class="stat-info">
+                  <span id="statTotalBookings" class="stat-value">0</span>
+                  <span class="stat-label">Total Booked</span>
+                </div>
+              </div>
+
+              <!-- Active Seats -->
+              <div class="glass-card stat-card">
+                <div class="stat-icon-box" style="color: var(--color-success);">
+                  <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div class="stat-info">
+                  <span id="statActiveBookings" class="stat-value">0</span>
+                  <span class="stat-label">Active Tickets</span>
+                </div>
+              </div>
+
+              <!-- Cancelled Tickets -->
+              <div class="glass-card stat-card">
+                <div class="stat-icon-box" style="color: var(--color-error);">
+                  <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div class="stat-info">
+                  <span id="statCancelledBookings" class="stat-value">0</span>
+                  <span class="stat-label">Cancellations</span>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Database Search Controls -->
+            <div class="search-bar-wrapper">
+              <div class="search-input-group">
+                <div class="input-wrapper">
+                  <svg class="input-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  <input type="text" id="adminSearchInput" class="form-input" onkeyup="filterAdminDatabase()" placeholder="Search by PNR, Passenger Name, Train or Station...">
+                </div>
+              </div>
+              <div>
+                <select id="adminStatusFilter" class="form-input" style="padding-left: 1rem;" onchange="filterAdminDatabase()">
+                  <option value="ALL">All Statuses</option>
+                  <option value="Active">Active Only</option>
+                  <option value="Cancelled">Cancelled Only</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- DB Table -->
+            <div id="adminDbContainer" class="table-container">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>PNR</th>
+                    <th>Passenger</th>
+                    <th>User Account</th>
+                    <th>Train Details</th>
+                    <th>Journey Date</th>
+                    <th>From &rarr; To</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="adminDbTableBody">
+                  <!-- JS generated rows -->
+                </tbody>
+              </table>
+            </div>
+
+            <div id="adminDbEmpty" class="empty-state hidden">
+              <svg class="empty-state-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 9.172V5L8 4z" />
+              </svg>
+              <h3>No Database Records Matched</h3>
+              <p>Adjust your search queries or filter choices above to retrieve system tickets.</p>
+            </div>
+
+          </section>
+
+        </main>
+      </div>
+
+      <!-- App Footer -->
+      <footer class="app-footer">
+        <p>&copy; 2026 RailPass Reservation System (Task 1). All Passenger Data Secured Under Central Database Framework.</p>
+      </footer>
+
+    </div>
+
+  </div>
+
+  <!-- Main System Script -->
+  <script src="app.js"></script>
+</body>
+</html>

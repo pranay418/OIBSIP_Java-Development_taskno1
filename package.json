@@ -1,0 +1,15 @@
+{
+  "name": "online-reservation-system",
+  "version": "1.0.0",
+  "description": "Premium Railway Online Reservation System dashboard",
+  "main": "index.html",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "vite": "^5.0.0"
+  }
+}
